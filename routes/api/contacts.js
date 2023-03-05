@@ -7,14 +7,14 @@ const router = express.Router()
 const {
   listContacts,
   getById,
-  // removeContact,
+  removeContact,
   addContact,
-  // updateContact,
+  updateContact,
 } = require('../../models/contacts')
 
 router.get('/', async (req, res, next) => {
 	const contacts = await listContacts();
-  res.json({ status: 200, contacts })
+  res.status(200).json({ contacts })
 })
 
 router.get('/:id', async (req, res, next) => {
@@ -35,26 +35,48 @@ router.get('/:id', async (req, res, next) => {
 })
 
 router.post('/', async (req, res, next) => {
-	
-	console.log('req.body: ', req.body);
 
 	if (!dataValidator(req.body)) {
-		res.json({status: 400, message: "missing required name field"});
+		res.status(400).json({message: "missing required name field"});
 		return;
 	}
 	const id = shortid.generate();
 	const body = {id, ...req.body};
 	addContact(body);
 
-  res.json({status: 201, body})
+  res.status(201).send({...body});
 })
 
-router.delete('/:contactId', async (req, res, next) => {
-  res.json({ message: 'template message' })
+router.delete('/:id', async (req, res, next) => {
+	const {id} = req.params;
+
+	const data = await removeContact(id);
+
+	const {status, message} = data;
+
+	res.json({status, message});
 })
 
-router.put('/:contactId', async (req, res, next) => {
-  res.json({ message: 'template message' })
+router.put('/:id', async (req, res, next) => {
+	const {id} = req.params;
+	const {body} = req;
+  if (!dataValidator(body)) {
+		res.status(400).json({ message: "missing fields"});
+		return;
+	}
+
+	const data = await updateContact(id, body);
+
+	const {status} = data;
+
+	if (status === 200) {
+		const {contact} = data;
+		res.status(200).send(contact)
+	} 
+	else {
+		const {message} = data;
+		res.status(404).json({ message})
+	}
 })
 
 module.exports = router

@@ -18,7 +18,20 @@ const getById = async (contactId) => {
 	return contact ? {contact, status: 200} : {message: "Not found", status: 404};
 }
 
-const removeContact = async (contactId) => {}
+const removeContact = async (contactId) => {
+	const contacts = await listContacts();
+
+	const needDelete = contacts.some(contact => contact.id === contactId);
+
+	if (needDelete) {
+		const deletedContacts = contacts.filter(contact => contact.id !== contactId);
+		await fsPromises.writeFile(CONTACTS_PATH, JSON.stringify(deletedContacts));
+	};
+
+	const res = needDelete ? {status: 200, message: "contact deleted"} : {status: 404, message: "Not found"};
+
+	return res;
+}
 
 const addContact = async (body) => {
 	const contacts = await listContacts();
@@ -28,7 +41,25 @@ const addContact = async (body) => {
 	await fsPromises.writeFile(CONTACTS_PATH, JSON.stringify(contacts));
 }
 
-const updateContact = async (contactId, body) => {}
+const updateContact = async (contactId, body) => {
+	const res = await getById(contactId);
+
+	if (res.status === 404) {
+		return res;
+	};
+
+	res.contact = {...body};
+
+	const {name, email, phone} = res.contact;
+
+	const contacts = await listContacts();
+
+	const contactsUpdated = contacts.map(contact => contact.id === contactId ? {...contact, name, email, phone} : contact);
+
+	fsPromises.writeFile(CONTACTS_PATH, JSON.stringify(contactsUpdated));
+	
+	return res;
+}
 
 module.exports = {
   listContacts,
