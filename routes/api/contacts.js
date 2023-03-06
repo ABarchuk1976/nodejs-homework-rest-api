@@ -1,8 +1,8 @@
-const express = require('express')
+const express = require('express');
 const dataValidator = require('../../helpers/dataValidator');
 const shortid = require('shortid');
 
-const router = express.Router()
+const router = express.Router();
 
 const {
   listContacts,
@@ -10,7 +10,7 @@ const {
   removeContact,
   addContact,
   updateContact,
-} = require('../../models/contacts')
+} = require('../../models/contacts');
 
 router.get('/', async (req, res, next) => {
 	const contacts = await listContacts();
@@ -79,4 +79,4 @@ router.put('/:id', async (req, res, next) => {
 	}
 })
 
-module.exports = router
+module.exports = router;
