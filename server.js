@@ -16,17 +16,16 @@ app.use(express.json());
 
 app.use('/api/contacts', contactsRouter);
 
-app.all('*',(req, res) => {
-  res.status(404).json({ message: 'Not found' })
+app.all('*', (req, res) => {
+  res.status(404).json({ message: 'Not found' });
 });
 
 app.use((err, req, res, next) => {
-	const {status} = err;
-  res.status(status || 500).json({ message: err.message })
+  const { status } = err;
+  res.status(status || 500).json({ message: err.message });
+  next();
 });
 
-
-
 app.listen(port, () => {
-  console.log("Server running. Use our API on port: 3000")
-})
+  console.log('Server running. Use our API on port: 3000');
+});

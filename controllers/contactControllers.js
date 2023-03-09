@@ -1,10 +1,8 @@
-const fsPromises = require('fs').promises;
-const shortid = require('shortid');
+const contactModels = require('../models/contactsModels');
 
-exports.listContacts = async (req, res) => {
+exports.listContactsController = async (_, res) => {
   try {
-    const bufferData = await fsPromises.readFile('./models/contacts.json');
-    const contacts = JSON.parse(bufferData);
+    const contacts = await contactModels.listContacts();
 
     res.status(200).json(contacts);
   } catch (err) {
@@ -12,29 +10,17 @@ exports.listContacts = async (req, res) => {
   }
 };
 
-exports.getById = async (req, res) => {
-  try {
-    const { contact } = req;
+exports.getByIdController = (req, res) => {
+  const { contact } = req;
 
-    res.status(200).json(contact);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+  res.status(200).json(contact);
 };
 
-exports.removeContact = async (req, res) => {
+exports.removeContactController = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const bufferData = await fsPromises.readFile('./models/contacts.json');
-    const updatedContactList = JSON.parse(bufferData).filter(
-      (item) => item.id !== id
-    );
-
-    await fsPromises.writeFile(
-      './models/contacts.json',
-      JSON.stringify(updatedContactList)
-    );
+    await contactModels.removeContact(id);
 
     res.status(200).json({ message: 'contact deleted' });
   } catch (err) {
@@ -42,49 +28,28 @@ exports.removeContact = async (req, res) => {
   }
 };
 
-exports.updateContact = async (req, res) => {
+exports.updateContactController = async (req, res) => {
   try {
     const {
-      contact,
-      body: { name, email, phone },
+      params: { id },
+      body,
     } = req;
 
-    const updatedContact = { ...contact };
-    if (name) updatedContact.name = name;
-    if (email) updatedContact.email = email;
-    if (phone) updatedContact.phone = phone;
+    const updatedContact = await contactModels.updateContact(id, body);
 
-    const bufferData = await fsPromises.readFile('./models/contacts.json');
-    const updatedContactList = JSON.parse(bufferData).map((item) =>
-      item.id === contact.id ? updatedContact : contact
-    );
-
-    fsPromises.writeFile(
-      './models/contacts.json',
-      JSON.stringify(updatedContactList)
-    );
     res.status(200).send(updatedContact);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
-exports.addContact = async (req, res) => {
+exports.addContactController = async (req, res) => {
   try {
     const { body } = req;
-    const bufferData = await fsPromises.readFile('./models/contacts.json');
-    const updatedContactList = JSON.parse(bufferData);
 
-    body.id = shortid.generate();
+    const addedContact = await contactModels.addContact(body);
 
-    updatedContactList.push(body);
-
-    await fsPromises.writeFile(
-      './models/contacts.json',
-      JSON.stringify(updatedContactList)
-    );
-
-    res.status(201).send(body);
+    res.status(201).send(addedContact);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

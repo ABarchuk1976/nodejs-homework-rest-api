@@ -10,8 +10,13 @@ exports.checkContactData = (req, res, next) => {
     phone: Joi.string().required(),
   });
 
-  if (schema.validate(req.body).error) {
-    return res.status(400).json({ message: 'missing required name field' });
+  const errorValidation = schema.validate(req.body).error;
+  if (errorValidation) {
+    const fieldName = errorValidation.details[0].context.key;
+
+    return res
+      .status(400)
+      .json({ message: `missing required '${fieldName}' field` });
   }
 
   next();
@@ -33,8 +38,6 @@ exports.checkContactId = async (req, res, next) => {
     const contacts = JSON.parse(bufferData);
 
     const contact = contacts.find((item) => item.id === id);
-
-    console.log('contact: ', contact);
 
     if (contact) {
       req.contact = contact;
