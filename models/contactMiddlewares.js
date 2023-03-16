@@ -1,5 +1,5 @@
 const contactValidators = require('../utils/contactValidators');
-const contactsModels = require('../models/contactsModels');
+const contactsModels = require('./contactsModels');
 
 exports.checkContactData = (req, res, next) => {
   const { body } = req;
@@ -24,12 +24,12 @@ exports.checkContactBody = (req, res, next) => {
   next();
 };
 
-exports.checkContactId = (req, res, next) => {
+exports.checkContactId = async (req, res, next) => {
   const { id } = req.params;
 
-  const contact = contactsModels.getById(id);
+  const exist = await contactsModels.isExist(id);
 
-  if (contact) {
+  if (exist) {
     return next();
   }
 
@@ -41,8 +41,6 @@ exports.checkContactFavorite = (req, res, next) => {
 
   const errorValidation =
     contactValidators.contactFavoriteValidator(body).error;
-
-  console.log(errorValidation);
 
   if (errorValidation || !Object.keys(body).length) {
     return res.status(400).json({ message: 'missing field favorite' });

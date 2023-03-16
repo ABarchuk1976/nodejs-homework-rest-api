@@ -68,8 +68,6 @@ exports.updateStatusContactController = async (req, res) => {
       body,
     } = req;
 
-    console.log(id, body);
-
     const updatedStatusContact = await contactModels.updateStatusContact(
       id,
       body

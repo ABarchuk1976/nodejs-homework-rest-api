@@ -39,6 +39,14 @@ exports.getById = async (connectId) => {
   }
 };
 
+exports.isExist = async (connectId) => {
+  try {
+    return await Contact.exists({ _id: connectId });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 exports.removeContact = async (contactID) => {
   try {
     await Contact.findByIdAndDelete(contactID);

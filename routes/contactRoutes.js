@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 
 const contactControllers = require('../controllers/contactControllers');
-const contactMiddlewares = require('../middlewares/contactMiddlewares');
+const contactMiddlewares = require('../models/contactMiddlewares');
 
 router
   .route('/')
@@ -27,6 +27,7 @@ router
 router
   .route('/:id/favorite')
   .put(
+    contactMiddlewares.checkContactId,
     contactMiddlewares.checkContactFavorite,
     contactControllers.updateStatusContactController
   );
