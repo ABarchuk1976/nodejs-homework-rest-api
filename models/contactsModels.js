@@ -1,6 +1,6 @@
-const mangoose = require('mongoose');
+const mongoose = require('mongoose');
 
-const contactSchema = mangoose.Schema({
+const contactSchema = new mongoose.Schema({
   name: {
     type: String,
     required: [true, 'Set name for contact'],
@@ -17,13 +17,23 @@ const contactSchema = mangoose.Schema({
   },
 });
 
-const Contact = mangoose.model('Contact', contactSchema);
+const Contact = mongoose.model('Contact', contactSchema);
 
 exports.listContacts = async () => {
   try {
-    const contacts = await Contact.find();
+    const contacts = await Contact.find().select('-__v');
 
     return contacts;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+exports.getById = async (connectId) => {
+  try {
+    const contact = await Contact.findById(connectId).select('-__v');
+
+    return contact;
   } catch (error) {
     console.log(error);
   }
@@ -40,14 +50,16 @@ exports.removeContact = async (contactID) => {
 exports.updateContact = async (contactId, body) => {
   try {
     const { name, email, phone, favorite } = body;
-
-    if (name) Contact.findByIdAndUpdate(contactId, { name }, { new: true });
-    if (email) Contact.findByIdAndUpdate(contactId, { email }, { new: true });
-    if (phone) Contact.findByIdAndUpdate(contactId, { phone }, { new: true });
+    if (name)
+      await Contact.findByIdAndUpdate(contactId, { name }, { new: true });
+    if (email)
+      await Contact.findByIdAndUpdate(contactId, { email }, { new: true });
+    if (phone)
+      await Contact.findByIdAndUpdate(contactId, { phone }, { new: true });
     if (favorite)
-      Contact.findByIdAndUpdate(contactId, { favorite }, { new: true });
+      await Contact.findByIdAndUpdate(contactId, { favorite }, { new: true });
 
-    const updatedContact = Contact.findById(contactId);
+    const updatedContact = await Contact.findById(contactId).select('-__v');
 
     return updatedContact;
   } catch (error) {
@@ -57,7 +69,7 @@ exports.updateContact = async (contactId, body) => {
 
 exports.addContact = async (body) => {
   try {
-    const contact = Contact.create(body);
+    const contact = await Contact.create(body).select('-__v');
 
     return contact;
   } catch (error) {
@@ -75,7 +87,7 @@ exports.updateStatusContact = async (contactId, body) => {
       {
         new: true,
       }
-    );
+    ).select('-__v');
 
     return contact;
   } catch (error) {

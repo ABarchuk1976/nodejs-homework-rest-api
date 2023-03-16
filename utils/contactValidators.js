@@ -11,10 +11,9 @@ exports.contactValidator = (data) =>
     })
     .validate(data);
 
-exports.contactFavoriteValidator = (favorite) => {
+exports.contactFavoriteValidator = (data) =>
   Joi.object()
     .keys({
-      favorite: Joi.boolean.allow(true, false),
+      favorite: Joi.boolean(),
     })
-    .validate(favorite);
-};
+    .validate(data);

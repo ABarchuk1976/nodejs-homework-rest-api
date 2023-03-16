@@ -10,10 +10,16 @@ exports.listContactsController = async (_, res) => {
   }
 };
 
-exports.getByIdController = (req, res) => {
-  const { contact } = req;
+exports.getByIdController = async (req, res) => {
+  try {
+    const { id } = req.params;
 
-  res.status(200).json(contact);
+    const contact = await contactModels.getById(id);
+
+    res.status(200).json(contact);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
 
 exports.removeContactController = async (req, res) => {
@@ -61,6 +67,8 @@ exports.updateStatusContactController = async (req, res) => {
       params: { id },
       body,
     } = req;
+
+    console.log(id, body);
 
     const updatedStatusContact = await contactModels.updateStatusContact(
       id,

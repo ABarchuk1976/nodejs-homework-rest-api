@@ -1,9 +1,10 @@
 const contactValidators = require('../utils/contactValidators');
-
-const Contact = require('../models/contactsModels');
+const contactsModels = require('../models/contactsModels');
 
 exports.checkContactData = (req, res, next) => {
-  const errorValidation = contactValidators.contactValidator(req.body).error;
+  const { body } = req;
+
+  const errorValidation = contactValidators.contactValidator(body).error;
   if (errorValidation) {
     const fieldName = errorValidation.details[0].context.key;
 
@@ -23,29 +24,27 @@ exports.checkContactBody = (req, res, next) => {
   next();
 };
 
-exports.checkContactId = async (req, res, next) => {
-  try {
-    const { id } = req.params;
+exports.checkContactId = (req, res, next) => {
+  const { id } = req.params;
 
-    const contact = Contact.findById(id);
+  const contact = contactsModels.getById(id);
 
-    if (contact) {
-      req.contact = contact;
-      return next();
-    }
-
-    return res.status(404).json({ message: 'Not found' });
-  } catch (err) {
-    next(err);
+  if (contact) {
+    return next();
   }
+
+  return res.status(404).json({ message: 'Not found' });
 };
 
-exports.checkContactFavorite = async (req, res, next) => {
+exports.checkContactFavorite = (req, res, next) => {
   const { body } = req;
+
   const errorValidation =
     contactValidators.contactFavoriteValidator(body).error;
 
-  if (errorValidation || !body.length) {
+  console.log(errorValidation);
+
+  if (errorValidation || !Object.keys(body).length) {
     return res.status(400).json({ message: 'missing field favorite' });
   }
 
