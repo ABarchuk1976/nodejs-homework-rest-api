@@ -54,3 +54,21 @@ exports.addContactController = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+exports.updateStatusContactController = async (req, res) => {
+  try {
+    const {
+      params: { id },
+      body,
+    } = req;
+
+    const updatedStatusContact = await contactModels.updateStatusContact(
+      id,
+      body
+    );
+
+    res.status(200).send(updatedStatusContact);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
