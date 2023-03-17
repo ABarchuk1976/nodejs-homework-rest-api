@@ -26,7 +26,7 @@ router
 
 router
   .route('/:id/favorite')
-  .put(
+  .patch(
     contactMiddlewares.checkContactId,
     contactMiddlewares.checkContactFavorite,
     contactControllers.updateStatusContactController

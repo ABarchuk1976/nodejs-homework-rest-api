@@ -14,7 +14,7 @@ const contactSchema = new mongoose.Schema({
   favorite: {
     type: Boolean,
     default: false,
-  },
+  }
 });
 
 const Contact = mongoose.model('Contact', contactSchema);
@@ -77,7 +77,7 @@ exports.updateContact = async (contactId, body) => {
 
 exports.addContact = async (body) => {
   try {
-    const contact = await Contact.create(body).select('-__v');
+    const contact = await Contact.create(body);
 
     return contact;
   } catch (error) {

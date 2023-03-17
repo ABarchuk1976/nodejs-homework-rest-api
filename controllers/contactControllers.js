@@ -73,6 +73,8 @@ exports.updateStatusContactController = async (req, res) => {
       body
     );
 
+		console.log(updatedStatusContact);
+		
     res.status(200).send(updatedStatusContact);
   } catch (err) {
     res.status(500).json({ message: err.message });
