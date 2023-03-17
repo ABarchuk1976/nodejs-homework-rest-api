@@ -79,7 +79,9 @@ exports.addContact = async (body) => {
   try {
     const contact = await Contact.create(body);
 
-    return contact;
+		const contactWithoutV = await Contact.findById(contact._id).select('-__v');
+
+    return contactWithoutV;
   } catch (error) {
     console.log(error);
   }
