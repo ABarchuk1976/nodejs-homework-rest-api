@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 
 const contactControllers = require('../controllers/contactControllers');
-const contactMiddlewares = require('../models/contactMiddlewares');
+const contactMiddlewares = require('../middlewares/contactMiddlewares');
 
 router
   .route('/')

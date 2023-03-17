@@ -1,5 +1,5 @@
 const contactValidators = require('../utils/contactValidators');
-const contactsModels = require('./contactsModels');
+const contactsModels = require('../models/contactsModels');
 
 exports.checkContactData = (req, res, next) => {
   const { body } = req;
