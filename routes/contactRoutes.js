@@ -24,4 +24,12 @@ router
   )
   .delete(contactControllers.removeContactController);
 
+router
+  .route('/:id/favorite')
+  .patch(
+    contactMiddlewares.checkContactId,
+    contactMiddlewares.checkContactFavorite,
+    contactControllers.updateStatusContactController
+  );
+
 module.exports = router;

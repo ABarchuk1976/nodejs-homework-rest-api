@@ -1,16 +1,10 @@
-const fsPromises = require('fs').promises;
-const Joi = require('joi');
+const contactValidators = require('../utils/contactValidators');
+const contactsModels = require('../models/contactsModels');
 
 exports.checkContactData = (req, res, next) => {
-  const schema = Joi.object({
-    name: Joi.string().min(3).max(30).required(),
-    email: Joi.string()
-      .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } })
-      .required(),
-    phone: Joi.string().required(),
-  });
+  const { body } = req;
 
-  const errorValidation = schema.validate(req.body).error;
+  const errorValidation = contactValidators.contactValidator(body).error;
   if (errorValidation) {
     const fieldName = errorValidation.details[0].context.key;
 
@@ -31,21 +25,26 @@ exports.checkContactBody = (req, res, next) => {
 };
 
 exports.checkContactId = async (req, res, next) => {
-  try {
-    const { id } = req.params;
+  const { id } = req.params;
 
-    const bufferData = await fsPromises.readFile('./models/contacts.json');
-    const contacts = JSON.parse(bufferData);
+  const exist = await contactsModels.isExist(id);
 
-    const contact = contacts.find((item) => item.id === id);
-
-    if (contact) {
-      req.contact = contact;
-      return next();
-    }
-
-    return res.status(404).json({ message: 'Not found' });
-  } catch (err) {
-    next(err);
+  if (exist) {
+    return next();
   }
+
+  return res.status(404).json({ message: 'Not found' });
+};
+
+exports.checkContactFavorite = (req, res, next) => {
+  const { body } = req;
+
+  const errorValidation =
+    contactValidators.contactFavoriteValidator(body).error;
+
+  if (errorValidation || !Object.keys(body).length) {
+    return res.status(400).json({ message: 'missing field favorite' });
+  }
+
+  next();
 };

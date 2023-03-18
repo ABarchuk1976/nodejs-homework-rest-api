@@ -1,13 +1,27 @@
-const fsPromises = require('fs').promises;
-const path = require('path');
-const shortid = require('shortid');
+const mongoose = require('mongoose');
 
-const contactsPath = path.join(__dirname, '', 'contacts.json');
+const contactSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: [true, 'Set name for contact'],
+  },
+  email: {
+    type: String,
+  },
+  phone: {
+    type: String,
+  },
+  favorite: {
+    type: Boolean,
+    default: false,
+  }
+});
+
+const Contact = mongoose.model('Contact', contactSchema);
 
 exports.listContacts = async () => {
   try {
-    const bufferData = await fsPromises.readFile(contactsPath);
-    const contacts = JSON.parse(bufferData);
+    const contacts = await Contact.find().select('-__v');
 
     return contacts;
   } catch (error) {
@@ -15,17 +29,27 @@ exports.listContacts = async () => {
   }
 };
 
+exports.getById = async (connectId) => {
+  try {
+    const contact = await Contact.findById(connectId).select('-__v');
+
+    return contact;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+exports.isExist = async (connectId) => {
+  try {
+    return await Contact.exists({ _id: connectId });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 exports.removeContact = async (contactID) => {
   try {
-    const bufferData = await fsPromises.readFile(contactsPath);
-    const updatedContactList = JSON.parse(bufferData).filter(
-      (item) => item.id !== String(contactID)
-    );
-
-    await fsPromises.writeFile(
-      contactsPath,
-      JSON.stringify(updatedContactList)
-    );
+    await Contact.findByIdAndDelete(contactID);
   } catch (error) {
     console.log(error);
   }
@@ -33,24 +57,17 @@ exports.removeContact = async (contactID) => {
 
 exports.updateContact = async (contactId, body) => {
   try {
-    const { name, email, phone } = body;
+    const { name, email, phone, favorite } = body;
+    if (name)
+      await Contact.findByIdAndUpdate(contactId, { name }, { new: true });
+    if (email)
+      await Contact.findByIdAndUpdate(contactId, { email }, { new: true });
+    if (phone)
+      await Contact.findByIdAndUpdate(contactId, { phone }, { new: true });
+    if (favorite)
+      await Contact.findByIdAndUpdate(contactId, { favorite }, { new: true });
 
-    const bufferData = await fsPromises.readFile(contactsPath);
-    const contacts = JSON.parse(bufferData);
-
-    const updatedContact = contacts.find((item) => item.id === contactId);
-    if (name) updatedContact.name = name;
-    if (email) updatedContact.email = email;
-    if (phone) updatedContact.phone = phone;
-
-    const updatedContactList = contacts.map((item) => {
-      return item.id === contactId ? updatedContact : item;
-    });
-
-    await fsPromises.writeFile(
-      contactsPath,
-      JSON.stringify(updatedContactList)
-    );
+    const updatedContact = await Contact.findById(contactId).select('-__v');
 
     return updatedContact;
   } catch (error) {
@@ -60,19 +77,29 @@ exports.updateContact = async (contactId, body) => {
 
 exports.addContact = async (body) => {
   try {
-    const bufferData = await fsPromises.readFile(contactsPath);
-    const contacts = JSON.parse(bufferData);
+    const contact = await Contact.create(body);
 
-    body.id = shortid.generate();
+		const contactWithoutV = await Contact.findById(contact._id).select('-__v');
 
-    const updatedContactList = [body, ...contacts];
+    return contactWithoutV;
+  } catch (error) {
+    console.log(error);
+  }
+};
 
-    await fsPromises.writeFile(
-      contactsPath,
-      JSON.stringify(updatedContactList)
-    );
+exports.updateStatusContact = async (contactId, body) => {
+  try {
+    const { favorite } = body;
 
-    return body;
+    const contact = await Contact.findByIdAndUpdate(
+      contactId,
+      { favorite },
+      {
+        new: true,
+      }
+    ).select('-__v');
+
+    return contact;
   } catch (error) {
     console.log(error);
   }

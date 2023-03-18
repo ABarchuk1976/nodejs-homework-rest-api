@@ -1,12 +1,26 @@
 const express = require('express');
 const logger = require('morgan');
 const cors = require('cors');
+const mongoose = require('mongoose');
 
 const contactsRouter = require('./routes/contactRoutes');
 
 const app = express();
 
 const formatsLogger = app.get('env') === 'development' ? 'dev' : 'short';
+
+mongoose
+  .connect(
+    'mongodb+srv://abarchuk1976:ab1976AB@abarchuk1976.w5c0x7b.mongodb.net/db-contacts?retryWrites=true&w=majority'
+  )
+  .then((con) => {
+    console.log('Mongo DB successfully connected..');
+  })
+  .catch((err) => {
+    console.log(err);
+
+    process.exit(1);
+  });
 
 const port = 3000;
 
