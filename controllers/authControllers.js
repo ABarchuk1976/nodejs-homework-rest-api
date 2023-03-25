@@ -10,7 +10,7 @@ const signToken = (id) =>
 exports.addUserController = async (req, res) => {
   const newUser = await User.create(req.body);
 
-  const { id, email, subscription } = newUser;
+  const { email, subscription } = newUser;
 
   return res.status(201).json({ user: { email, subscription } });
 };

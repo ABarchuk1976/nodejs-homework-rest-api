@@ -1,3 +1,4 @@
+const { Types } = require('mongoose');
 const contactValidators = require('../utils/contactValidators');
 const contactsModels = require('../models/contactsModels');
 
@@ -27,13 +28,14 @@ exports.checkContactBody = (req, res, next) => {
 exports.checkContactId = async (req, res, next) => {
   const { id } = req.params;
 
-  const exist = await contactsModels.isExist(id);
+  const idIsValid = Types.ObjectId.isValid(id);
 
-  if (exist) {
-    return next();
-  }
+  if (!idIsValid) return res.status(404).json({ message: 'Not found' });
 
-  return res.status(404).json({ message: 'Not found' });
+  const userExist = await contactsModels.exists({ _id: id });
+
+  if (!userExist) return res.status(404).json({ message: 'Not found' });
+  next();
 };
 
 exports.checkContactFavorite = (req, res, next) => {
