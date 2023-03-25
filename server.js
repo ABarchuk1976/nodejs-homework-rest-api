@@ -1,18 +1,19 @@
 const express = require('express');
 const logger = require('morgan');
 const cors = require('cors');
+const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 
 const contactsRouter = require('./routes/contactRoutes');
+const authRouter = require('./routes/authRoutes');
 
 const app = express();
+dotenv.config({ path: './.env' });
 
-const formatsLogger = app.get('env') === 'development' ? 'dev' : 'short';
+const formatsLogger = process.env.NODE_ENV === 'development' ? 'dev' : 'short';
 
 mongoose
-  .connect(
-    'mongodb+srv://abarchuk1976:ab1976AB@abarchuk1976.w5c0x7b.mongodb.net/db-contacts?retryWrites=true&w=majority'
-  )
+  .connect(process.env.MONGO_URL)
   .then((con) => {
     console.log('Mongo DB successfully connected..');
   })
@@ -22,12 +23,13 @@ mongoose
     process.exit(1);
   });
 
-const port = 3000;
+const port = process.env.PORT || 4000;
 
 app.use(logger(formatsLogger));
 app.use(cors());
 app.use(express.json());
 
+app.use('/api/auth', contactsRouter);
 app.use('/api/contacts', contactsRouter);
 
 app.all('*', (req, res) => {

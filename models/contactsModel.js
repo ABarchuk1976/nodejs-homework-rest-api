@@ -14,10 +14,14 @@ const contactSchema = new mongoose.Schema({
   favorite: {
     type: Boolean,
     default: false,
-  }
+  },
+	owner: {
+		type: mongoose.Types.ObjectId,
+		ref: 'user',
+	}
 });
 
-const Contact = mongoose.model('Contact', contactSchema);
+const Contact = mongoose.model('contact', contactSchema);
 
 exports.listContacts = async () => {
   try {
