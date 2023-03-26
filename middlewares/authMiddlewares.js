@@ -1,27 +1,29 @@
 const jwt = require('jsonwebtoken');
 
 const authValidator = require('../utils/authValidator');
-const User = require('../models/usersModel');
+const usersModel = require('../models/usersModel');
 
-exports.checkSighupUserData = async (req, res, next) => {
-  const { error, value } = authValidator.signupUserDataValidator(req.body);
+exports.checkAuthUserData = (req, res, next) => {
+  const { error } = authValidator.authUserDataValidator(req.body);
 
   if (error) {
-    const errorJoi = error.details[0].context.key;
-    return res
-      .status(400)
-      .json({ message: `missing required "${errorJoi}" field` });
+    const { key } = error.details[0].context;
+
+    return res.status(400).json({ message: `${key} missing or invalid` });
   }
 
-  const checkEmail = await User.exists({ email: value.email });
+  next();
+};
+
+exports.checkRegisterEmail = async (req, res, next) => {
+  const { email } = req.body;
+  const checkEmail = await usersModel.isExists(email);
 
   if (checkEmail) {
     return res.status(409).json({
-      message: `Email ${value.email} in use`,
+      message: `Email ${email} in use`,
     });
   }
-
-  req.body = value;
 
   next();
 };
@@ -29,7 +31,7 @@ exports.checkSighupUserData = async (req, res, next) => {
 exports.protect = async (req, res, next) => {
   const token =
     req.headers.authorization?.startsWith('Bearer') &&
-    req.headers.authorization.split(' ')[1];
+    req.headers.authorization?.split(' ')[1];
 
   if (!token) {
     return res.status(401).json({
@@ -49,13 +51,15 @@ exports.protect = async (req, res, next) => {
     });
   }
 
-  const currentUser = await User.findById(decoded.id);
+  const currentUser = await usersModel.getById(decoded.id);
 
   if (!currentUser) {
     return res.status(401).json({
       message: 'Not authorized',
     });
   }
+
+  console.log('Current User: ', currentUser);
 
   req.user = currentUser;
 

@@ -7,13 +7,20 @@ const authMiddlewares = require('../middlewares/authMiddlewares');
 
 router
   .route('/register')
-  .post(authMiddlewares.checkSighupUserData, authControllers.addUserController);
+  .post(
+    authMiddlewares.checkAuthUserData,
+    authMiddlewares.checkRegisterEmail,
+    authControllers.addUserController
+  );
 
 router
   .route('/login')
-  .post(
-    authMiddlewares.checkSighupUserData,
-    authControllers.loginUserController
-  );
+  .post(authMiddlewares.checkAuthUserData, authControllers.loginUserController);
+
+router.use(authMiddlewares.protect);
+
+router.route('/logout').post(authControllers.logoutUserController);
+
+router.route('/current').post(authControllers.currentUserController);
 
 module.exports = router;

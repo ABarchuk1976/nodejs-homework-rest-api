@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
 const userSchema = new mongoose.Schema({
@@ -38,4 +39,68 @@ userSchema.methods.checkPassword = (candidate, hash) =>
 
 const User = mongoose.model('user', userSchema);
 
-module.exports = User;
+const signToken = (id) =>
+  jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN,
+  });
+
+exports.addUser = async (body) => {
+  try {
+    const newUser = await User.create(body);
+
+    const { email, subscription } = newUser;
+
+    return { user: { email, subscription } };
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+exports.loginUser = async (body) => {
+  try {
+    const { email, password } = body;
+    const logonUser = await User.findOne({ email }).select('+password');
+    const passwordIsValid = await logonUser?.checkPassword(
+      password,
+      logonUser.password
+    );
+
+    if (!(logonUser && passwordIsValid)) return { token: null, user: null };
+
+    const { id } = logonUser;
+
+    const token = signToken(id);
+
+    const user = await User.findByIdAndUpdate(id, { token }, { new: true });
+
+    console.log('User in usersModel: ', user);
+
+    return user;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+exports.logoutUser = async (id) => {
+  try {
+    return await User.findByIdAndUpdate(id, { token: null }, { new: true });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+exports.isExists = async (email) => {
+  try {
+    return await User.exists({ email });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+exports.getById = async (userId) => {
+  try {
+    return await User.findById(userId);
+  } catch (error) {
+    console.log(error);
+  }
+};

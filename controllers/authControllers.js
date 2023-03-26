@@ -1,34 +1,35 @@
-const jwt = require('jsonwebtoken');
+const usersModel = require('../models/usersModel');
 
-const User = require('../models/usersModel');
-
-const signToken = (id) =>
-  jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN,
-  });
-
-exports.addUserController = async (req, res) => {
-  const newUser = await User.create(req.body);
-
-  const { email, subscription } = newUser;
-
-  return res.status(201).json({ user: { email, subscription } });
-};
+exports.addUserController = async (req, res) =>
+  await res.status(201).json(usersModel.addUser(req.body));
 
 exports.loginUserController = async (req, res) => {
-  const { email, password } = req.body;
+  const user = await usersModel.loginUser(req.body);
 
-  const user = await User.findOne({ email }).select('+password');
-  const passwordIsValid = user.checkPassword(password, user.password);
+  const { token, email, subscription } = user;
 
-  if (!(user && passwordIsValid))
+  if (!token)
     return res.status(401).json({
       message: 'Email or password is wrong',
     });
 
-  const { id, subscription } = user;
-
-  const token = signToken(id);
+  req.user = user;
 
   return res.status(200).json({ token, user: { email, subscription } });
+};
+
+exports.logoutUserController = async (req, res) => {
+  const { id } = req.user;
+
+  const logoutUser = await usersModel.logoutUser(id);
+
+  req.user = logoutUser;
+
+  return res.sendStatus(204);
+};
+
+exports.currentUserController = (req, res) => {
+  const { email, subscription } = req.user;
+
+  res.status(200).json({ email, subscription });
 };
