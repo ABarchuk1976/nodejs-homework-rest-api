@@ -1,7 +1,6 @@
 const usersModel = require('../models/usersModel');
 
-exports.addUserController = async (req, res) =>
-  await res.status(201).json(usersModel.addUser(req.body));
+exports.addUserController = async (req, res) => res.status(201).json(await usersModel.addUser(req.body));
 
 exports.loginUserController = async (req, res) => {
   const user = await usersModel.loginUser(req.body);
