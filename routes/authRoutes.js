@@ -19,6 +19,13 @@ router
 
 router.use(authMiddlewares.protect);
 
+router
+  .route('/')
+  .patch(
+    authMiddlewares.checkUserSubscription,
+    authControllers.updateSubscriptionController
+  );
+
 router.route('/logout').post(authControllers.logoutUserController);
 
 router.route('/current').post(authControllers.currentUserController);

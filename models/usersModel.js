@@ -2,29 +2,32 @@ const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
-const userSchema = new mongoose.Schema({
-  password: {
-    type: String,
-    required: [true, 'Password is required'],
-    select: false,
+const userSchema = new mongoose.Schema(
+  {
+    password: {
+      type: String,
+      required: [true, 'Password is required'],
+      select: false,
+    },
+    email: {
+      type: String,
+      required: [true, 'Email is required'],
+      unique: [true, 'Duplicated email'],
+      lowercase: true,
+      trim: true,
+    },
+    subscription: {
+      type: String,
+      enum: ['starter', 'pro', 'business'],
+      default: 'starter',
+    },
+    token: {
+      type: String,
+      default: null,
+    },
   },
-  email: {
-    type: String,
-    required: [true, 'Email is required'],
-    unique: [true, 'Duplicated email'],
-    lowercase: true,
-    trim: true,
-  },
-  subscription: {
-    type: String,
-    enum: ['starter', 'pro', 'business'],
-    default: 'starter',
-  },
-  token: {
-    type: String,
-    default: null,
-  },
-});
+  { versionKey: false }
+);
 
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
@@ -100,6 +103,19 @@ exports.isExists = async (email) => {
 exports.getById = async (userId) => {
   try {
     return await User.findById(userId);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+exports.updateSubscription = async (userId, subscription) => {
+  try {
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { subscription },
+      { new: true }
+    ).select('-__v');
+    return updatedUser;
   } catch (error) {
     console.log(error);
   }

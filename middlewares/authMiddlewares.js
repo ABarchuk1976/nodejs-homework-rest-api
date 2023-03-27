@@ -28,6 +28,19 @@ exports.checkRegisterEmail = async (req, res, next) => {
   next();
 };
 
+exports.checkUserSubscription = (req, res, next) => {
+  const { subscription } = req.body;
+
+  const { error } = authValidator.authSubscriptionValidator({ subscription });
+
+  if (error)
+    return res.status(400).json({
+      massage:
+        'Do not valid subscription value. Set one of: starter, pro, business',
+    });
+  next();
+};
+
 exports.protect = async (req, res, next) => {
   const token =
     req.headers.authorization?.startsWith('Bearer') &&

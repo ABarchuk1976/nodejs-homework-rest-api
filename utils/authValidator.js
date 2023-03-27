@@ -12,3 +12,10 @@ exports.authUserDataValidator = (data) =>
       password: Joi.string().regex(PASSWD_REGEX).required(),
     })
     .validate(data);
+
+exports.authSubscriptionValidator = (data) =>
+  Joi.object()
+    .keys({
+      subscription: Joi.any().valid('starter', 'pro', 'business'),
+    })
+    .validate(data);

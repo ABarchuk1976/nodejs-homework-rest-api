@@ -33,3 +33,22 @@ exports.currentUserController = (req, res) => {
 
   res.status(200).json({ email, subscription });
 };
+
+exports.updateSubscriptionController = async (req, res) => {
+  const {
+    user: { subscription, id },
+  } = req;
+  const { subscription: newSubscription } = req.body;
+
+  console.log('DATA: ', id, subscription, newSubscription);
+
+  if (subscription !== newSubscription) {
+    const updatedUser = await usersModel.updateSubscription(
+      id,
+      newSubscription
+    );
+    req.user = updatedUser;
+  }
+
+  return res.status(200).json(req.user);
+};
