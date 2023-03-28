@@ -1,27 +1,49 @@
-const mongoose = require('mongoose');
+const { Schema, model, Types } = require('mongoose');
 
-const contactSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: [true, 'Set name for contact'],
+const contactSchema = new Schema(
+  {
+    name: {
+      type: String,
+      required: [true, 'Set name for contact'],
+    },
+    email: {
+      type: String,
+    },
+    phone: {
+      type: String,
+    },
+    favorite: {
+      type: Boolean,
+      default: false,
+    },
+    owner: {
+      type: Types.ObjectId,
+      ref: 'user',
+    },
   },
-  email: {
-    type: String,
-  },
-  phone: {
-    type: String,
-  },
-  favorite: {
-    type: Boolean,
-    default: false,
-  }
-});
+  { versionKey: false }
+);
 
-const Contact = mongoose.model('Contact', contactSchema);
+const Contact = model('contact', contactSchema);
 
-exports.listContacts = async () => {
+exports.listContacts = async (owner, options) => {
   try {
-    const contacts = await Contact.find().select('-__v');
+    const { limit, page = 1, favorite } = options;
+
+    let findOptions = { owner };
+
+    if (favorite) {
+      findOptions = { $and: [{ owner }, { favorite }] };
+    }
+
+    const contactsQuery = Contact.find(findOptions).select('-__v');
+
+    if (limit) {
+      const skip = (page - 1) * limit;
+      contactsQuery.skip(skip).limit(limit);
+    }
+
+    const contacts = await contactsQuery;
 
     return contacts;
   } catch (error) {
@@ -29,19 +51,18 @@ exports.listContacts = async () => {
   }
 };
 
-exports.getById = async (connectId) => {
+exports.getById = async (contactId) => {
   try {
-    const contact = await Contact.findById(connectId).select('-__v');
-
+    const [contact] = await Contact.find({ _id: contactId }).select('-__v');
     return contact;
   } catch (error) {
     console.log(error);
   }
 };
 
-exports.isExist = async (connectId) => {
+exports.isExist = async (contactId) => {
   try {
-    return await Contact.exists({ _id: connectId });
+    return await Contact.exists({ _id: contactId });
   } catch (error) {
     console.log(error);
   }
@@ -75,11 +96,13 @@ exports.updateContact = async (contactId, body) => {
   }
 };
 
-exports.addContact = async (body) => {
+exports.addContact = async (body, user) => {
   try {
+    body.owner = user;
+
     const contact = await Contact.create(body);
 
-		const contactWithoutV = await Contact.findById(contact._id).select('-__v');
+    const contactWithoutV = await Contact.findById(contact._id).select('-__v');
 
     return contactWithoutV;
   } catch (error) {

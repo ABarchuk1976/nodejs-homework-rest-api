@@ -1,9 +1,12 @@
-const express = require('express');
+const { Router } = require('express');
 
-const router = express.Router();
+const router = Router();
 
 const contactControllers = require('../controllers/contactControllers');
+const authMiddlewares = require('../middlewares/authMiddlewares');
 const contactMiddlewares = require('../middlewares/contactMiddlewares');
+
+router.use(authMiddlewares.protect);
 
 router
   .route('/')
@@ -27,7 +30,6 @@ router
 router
   .route('/:id/favorite')
   .patch(
-    contactMiddlewares.checkContactId,
     contactMiddlewares.checkContactFavorite,
     contactControllers.updateStatusContactController
   );

@@ -1,8 +1,9 @@
-const contactModels = require('../models/contactsModels');
+const contactsModel = require('../models/contactsModel');
 
-exports.listContactsController = async (_, res) => {
+exports.listContactsController = async (req, res) => {
   try {
-    const contacts = await contactModels.listContacts();
+    const { id } = req.user;
+    const contacts = await contactsModel.listContacts(id, req.query);
 
     res.status(200).json(contacts);
   } catch (err) {
@@ -14,7 +15,7 @@ exports.getByIdController = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const contact = await contactModels.getById(id);
+    const contact = await contactsModel.getById(id);
 
     res.status(200).json(contact);
   } catch (err) {
@@ -26,7 +27,7 @@ exports.removeContactController = async (req, res) => {
   try {
     const { id } = req.params;
 
-    await contactModels.removeContact(id);
+    await contactsModel.removeContact(id);
 
     res.status(200).json({ message: 'contact deleted' });
   } catch (err) {
@@ -41,7 +42,7 @@ exports.updateContactController = async (req, res) => {
       body,
     } = req;
 
-    const updatedContact = await contactModels.updateContact(id, body);
+    const updatedContact = await contactsModel.updateContact(id, body);
 
     res.status(200).send(updatedContact);
   } catch (err) {
@@ -51,9 +52,11 @@ exports.updateContactController = async (req, res) => {
 
 exports.addContactController = async (req, res) => {
   try {
-    const { body } = req;
+    const { body, user } = req;
 
-    const addedContact = await contactModels.addContact(body);
+    console.log('Body: ', body, 'User: ', user);
+
+    const addedContact = await contactsModel.addContact(body, user);
 
     res.status(201).send(addedContact);
   } catch (err) {
@@ -68,13 +71,13 @@ exports.updateStatusContactController = async (req, res) => {
       body,
     } = req;
 
-    const updatedStatusContact = await contactModels.updateStatusContact(
+    const updatedStatusContact = await contactsModel.updateStatusContact(
       id,
       body
     );
 
-		console.log(updatedStatusContact);
-		
+    console.log(updatedStatusContact);
+
     res.status(200).send(updatedStatusContact);
   } catch (err) {
     res.status(500).json({ message: err.message });
