@@ -2,6 +2,20 @@ const jwt = require('jsonwebtoken');
 
 const authValidator = require('../utils/authValidator');
 const usersModel = require('../models/usersModel');
+const ImageService = require('../services/imageService');
+
+exports.checkEmail = async (req, res, next) => {
+  const { email } = req.body;
+  const checkEmail = await usersModel.isExists(email);
+
+  if (checkEmail) {
+    return res.status(409).json({
+      message: `Email ${email} in use`,
+    });
+  }
+
+  next();
+};
 
 exports.checkAuthUserData = (req, res, next) => {
   const { error } = authValidator.authUserDataValidator(req.body);
@@ -10,19 +24,6 @@ exports.checkAuthUserData = (req, res, next) => {
     const { key } = error.details[0].context;
 
     return res.status(400).json({ message: `${key} missing or invalid` });
-  }
-
-  next();
-};
-
-exports.checkRegisterEmail = async (req, res, next) => {
-  const { email } = req.body;
-  const checkEmail = await usersModel.isExists(email);
-
-  if (checkEmail) {
-    return res.status(409).json({
-      message: `Email ${email} in use`,
-    });
   }
 
   next();
@@ -72,9 +73,9 @@ exports.protect = async (req, res, next) => {
     });
   }
 
-  console.log('Current User: ', currentUser);
-
   req.user = currentUser;
 
   next();
 };
+
+exports.updateAvatar = ImageService.upload('avatar');
