@@ -1,6 +1,8 @@
 const usersModel = require('../models/usersModel');
+const ImageService = require('../services/imageService');
 
-exports.addUserController = async (req, res) => res.status(201).json(await usersModel.addUser(req.body));
+exports.addUserController = async (req, res) =>
+  res.status(201).json(await usersModel.addUser(req.body));
 
 exports.loginUserController = async (req, res) => {
   const user = await usersModel.loginUser(req.body);
@@ -18,11 +20,11 @@ exports.loginUserController = async (req, res) => {
 };
 
 exports.logoutUserController = async (req, res) => {
-  const { id } = req.user;
+  const { user } = req;
 
-  const logoutUser = await usersModel.logoutUser(id);
+  user.token = null;
 
-  req.user = logoutUser;
+  await user.save();
 
   return res.sendStatus(204);
 };
@@ -34,20 +36,29 @@ exports.currentUserController = (req, res) => {
 };
 
 exports.updateSubscriptionController = async (req, res) => {
-  const {
-    user: { subscription, id },
-  } = req;
+  const { user } = req;
   const { subscription: newSubscription } = req.body;
 
-  console.log('DATA: ', id, subscription, newSubscription);
+  user.subscription = newSubscription;
 
-  if (subscription !== newSubscription) {
-    const updatedUser = await usersModel.updateSubscription(
-      id,
-      newSubscription
-    );
-    req.user = updatedUser;
+  await user.save();
+
+  const { email, subscription } = user;
+
+  return res.status(200).json({ email, subscription });
+};
+
+exports.updateAvatarController = async (req, res) => {
+  const { file, user } = req;
+
+  if (file) {
+    user.avatarURL = await ImageService.save(user.id, file, {
+      width: 250,
+      height: 250,
+    });
   }
 
-  return res.status(200).json(req.user);
+  const { avatarURL } = await user.save();
+
+  return res.status(200).json({ avatarURL });
 };

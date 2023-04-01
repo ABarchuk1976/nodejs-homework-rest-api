@@ -9,7 +9,7 @@ router
   .route('/register')
   .post(
     authMiddlewares.checkAuthUserData,
-    authMiddlewares.checkRegisterEmail,
+    authMiddlewares.checkEmail,
     authControllers.addUserController
   );
 
@@ -29,5 +29,7 @@ router
 router.route('/logout').post(authControllers.logoutUserController);
 
 router.route('/current').post(authControllers.currentUserController);
+
+router.route('/avatars').patch(authMiddlewares.updateAvatar, authControllers.updateAvatarController);
 
 module.exports = router;

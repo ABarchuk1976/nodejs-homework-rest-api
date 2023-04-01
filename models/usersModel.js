@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 
 const userSchema = new mongoose.Schema(
   {
@@ -21,6 +22,7 @@ const userSchema = new mongoose.Schema(
       enum: ['starter', 'pro', 'business'],
       default: 'starter',
     },
+		avatarURL: String,
     token: {
       type: String,
       default: null,
@@ -30,6 +32,12 @@ const userSchema = new mongoose.Schema(
 );
 
 userSchema.pre('save', async function (next) {
+	if (this.isNew) {
+		const emailHash = crypto.createHash('md5').update(this.email).digest('hex');
+
+		this.avatarURL = `https://www.gravatar.com/avatar/${emailHash}?s=250&d=identicon`;
+	}
+
   if (!this.isModified('password')) return next();
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
@@ -84,14 +92,6 @@ exports.loginUser = async (body) => {
   }
 };
 
-exports.logoutUser = async (id) => {
-  try {
-    return await User.findByIdAndUpdate(id, { token: null }, { new: true });
-  } catch (error) {
-    console.log(error);
-  }
-};
-
 exports.isExists = async (email) => {
   try {
     return await User.exists({ email });
@@ -103,19 +103,6 @@ exports.isExists = async (email) => {
 exports.getById = async (userId) => {
   try {
     return await User.findById(userId);
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-exports.updateSubscription = async (userId, subscription) => {
-  try {
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      { subscription },
-      { new: true }
-    ).select('-__v');
-    return updatedUser;
   } catch (error) {
     console.log(error);
   }
