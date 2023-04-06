@@ -35,7 +35,7 @@ const userSchema = new mongoose.Schema(
     },
     verificationToken: {
       type: String,
-      required: [true, 'Verify token is required'],
+			default: null,
     },
   },
   { versionKey: false }
@@ -76,7 +76,7 @@ exports.addUser = async (body) => {
     const { email, subscription, verificationToken } = newUser;
 
     const subject = `For verification your registration.`;
-    const html = `<a href="localhost:3000/users/verify/${verificationToken}"><strong> Follow the link: </strong></a>`;
+    const html = `<strong> Follow the link: </strong><a href="localhost:3000/api/users/verify/${verificationToken}" target="_blank" rel="noopener noreferrer">localhost:3000/api/users/verify/${verificationToken}</a>`;
 
     await sendEmail({ to: email, subject, html });
 
@@ -91,6 +91,7 @@ exports.loginUser = async (body) => {
   try {
     const { email, password } = body;
     const logonUser = await User.findOne({ email }).select('+password');
+
     const passwordIsValid = await logonUser?.checkPassword(
       password,
       logonUser.password

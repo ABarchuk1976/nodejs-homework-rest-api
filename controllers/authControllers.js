@@ -14,6 +14,10 @@ exports.loginUserController = async (req, res) => {
       message: 'Email or password is wrong',
     });
 
+		if (!user?.verify) {
+			return res.status(401).json({message: "Registration do not verified yet."});
+		}
+
   req.user = user;
 
   return res.status(200).json({ token, user: { email, subscription } });
@@ -68,7 +72,8 @@ exports.verificationController = async (req, res) => {
 
 	console.log("USER IN CONTROLLER: ", user);
 
-  user.verificationToken = '';
+  user.verificationToken = null;
+	user.markModified('verificationToken');
   user.verify = true;
 
   await user.save();
