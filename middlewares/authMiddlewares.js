@@ -79,3 +79,17 @@ exports.protect = async (req, res, next) => {
 };
 
 exports.updateAvatar = ImageService.upload('avatar');
+
+exports.checkVerificationToken = async (req, res, next) => {
+  const { verificationToken } = req.params;
+  const user = await usersModel.getByVerificationToken(verificationToken);
+
+  if (!user)
+    return res.status(404).json({
+      message: 'User not found',
+    });
+
+  req.user = user;
+
+  next();
+};

@@ -62,3 +62,16 @@ exports.updateAvatarController = async (req, res) => {
 
   return res.status(200).json({ avatarURL });
 };
+
+exports.verificationController = async (req, res) => {
+  const { user } = req;
+
+  user.verificationToken = null;
+  user.verify = true;
+
+  await user.save();
+
+  res.status(200).json({
+    message: 'Verification successful',
+  });
+};
