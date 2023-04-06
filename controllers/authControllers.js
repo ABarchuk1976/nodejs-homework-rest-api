@@ -66,7 +66,9 @@ exports.updateAvatarController = async (req, res) => {
 exports.verificationController = async (req, res) => {
   const { user } = req;
 
-  user.verificationToken = null;
+	console.log("USER IN CONTROLLER: ", user);
+
+  user.verificationToken = '';
   user.verify = true;
 
   await user.save();

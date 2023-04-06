@@ -14,7 +14,7 @@ router
   );
 
 router
-  .route('verify/:verificationToken')
+  .route('/verify/:verificationToken')
   .get(
     authMiddlewares.checkVerificationToken,
     authControllers.verificationController

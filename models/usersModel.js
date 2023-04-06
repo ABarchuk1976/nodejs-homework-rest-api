@@ -71,13 +71,16 @@ exports.addUser = async (body) => {
 
     const newUser = await User.create(body);
 
+		console.log("NEW USER: ", newUser);
+
     const { email, subscription, verificationToken } = newUser;
 
-    const subject = `For verification youe registration.`;
-    const html = `<strong> Follow the link: </strong> <a> href="localhost:3000/users/verify/${verificationToken}"</a>`;
+    const subject = `For verification your registration.`;
+    const html = `<a href="localhost:3000/users/verify/${verificationToken}"><strong> Follow the link: </strong></a>`;
 
-    await sendEmail({ email, subject, html });
+    await sendEmail({ to: email, subject, html });
 
+		
     return { user: { email, subscription } };
   } catch (error) {
     console.log(error);
@@ -100,8 +103,6 @@ exports.loginUser = async (body) => {
     const token = signToken(id);
 
     const user = await User.findByIdAndUpdate(id, { token }, { new: true });
-
-    console.log('User in usersModel: ', user);
 
     return user;
   } catch (error) {
@@ -127,7 +128,12 @@ exports.getById = async (userId) => {
 
 exports.getByVerificationToken = async (token) => {
   try {
-    return await User.findOne({ verificationToken: token });
+
+		const user = await User.findOne({ verificationToken: token });
+
+		console.log("USER: ", user);
+
+    return user;
   } catch (error) {
     console.log(error);
   }
