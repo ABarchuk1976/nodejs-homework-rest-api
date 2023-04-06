@@ -2,6 +2,8 @@ const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
+const sendEmail = require('../services/emailService');
+const uuid = require('uuid').v4;
 
 const userSchema = new mongoose.Schema(
   {
@@ -22,21 +24,29 @@ const userSchema = new mongoose.Schema(
       enum: ['starter', 'pro', 'business'],
       default: 'starter',
     },
-		avatarURL: String,
+    avatarURL: String,
     token: {
       type: String,
       default: null,
+    },
+    verify: {
+      type: Boolean,
+      default: false,
+    },
+    verificationToken: {
+      type: String,
+      required: [true, 'Verify token is required'],
     },
   },
   { versionKey: false }
 );
 
 userSchema.pre('save', async function (next) {
-	if (this.isNew) {
-		const emailHash = crypto.createHash('md5').update(this.email).digest('hex');
+  if (this.isNew) {
+    const emailHash = crypto.createHash('md5').update(this.email).digest('hex');
 
-		this.avatarURL = `https://www.gravatar.com/avatar/${emailHash}?s=250&d=identicon`;
-	}
+    this.avatarURL = `https://www.gravatar.com/avatar/${emailHash}?s=250&d=identicon`;
+  }
 
   if (!this.isModified('password')) return next();
   const salt = await bcrypt.genSalt(10);
@@ -57,9 +67,16 @@ const signToken = (id) =>
 
 exports.addUser = async (body) => {
   try {
+    body.verificationToken = uuid();
+
     const newUser = await User.create(body);
 
-    const { email, subscription } = newUser;
+    const { email, subscription, verificationToken } = newUser;
+
+    const subject = `For verification youe registration.`;
+    const html = `<strong> Follow the link: </strong> <a> href="localhost:3000/users/verify/${verificationToken}"</a>`;
+
+    await sendEmail({ email, subject, html });
 
     return { user: { email, subscription } };
   } catch (error) {
@@ -103,6 +120,14 @@ exports.isExists = async (email) => {
 exports.getById = async (userId) => {
   try {
     return await User.findById(userId);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+exports.getByVerificationToken = async (token) => {
+  try {
+    return await User.findOne({ verificationToken: token });
   } catch (error) {
     console.log(error);
   }
