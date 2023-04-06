@@ -20,6 +20,11 @@ router
     authControllers.verificationController
   );
 
+router.route('/verify')
+.post(
+	authControllers.sendEmailController
+	);
+
 router
   .route('/login')
   .post(authMiddlewares.checkAuthUserData, authControllers.loginUserController);

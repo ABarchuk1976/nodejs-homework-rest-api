@@ -1,5 +1,7 @@
 const usersModel = require('../models/usersModel');
+const sendEmail = require('../services/emailService');
 const ImageService = require('../services/imageService');
+const { authEmailValidator } = require('../utils/authValidator');
 
 exports.addUserController = async (req, res) =>
   res.status(201).json(await usersModel.addUser(req.body));
@@ -70,10 +72,7 @@ exports.updateAvatarController = async (req, res) => {
 exports.verificationController = async (req, res) => {
   const { user } = req;
 
-	console.log("USER IN CONTROLLER: ", user);
-
   user.verificationToken = null;
-	user.markModified('verificationToken');
   user.verify = true;
 
   await user.save();
@@ -82,3 +81,31 @@ exports.verificationController = async (req, res) => {
     message: 'Verification successful',
   });
 };
+
+exports.sendEmailController = async (req, res) => {
+
+	if (!req.body.email) return res.status(400).json({"message": "missing required field email"});
+
+	const {email} = req.body;
+
+	const {error} = authEmailValidator({email});
+
+	if (error) return res.status(400).json({message: "field email is not valid"});
+
+	const user = await usersModel.getByEmail(email);
+
+	const { verify, verificationToken } = user;
+
+	if (verify) return res.status(400).json({
+		message: "Verification has already been passed"
+	});
+
+    const subject = `For verification your registration.`;
+    const html = `<strong> Follow the link: </strong><a href="localhost:3000/api/users/verify/${verificationToken}" target="_blank" rel="noopener noreferrer">localhost:3000/api/users/verify/${verificationToken}</a>`;
+
+    await sendEmail({ to: email, subject, html });
+
+		return res.status(200).json({
+			"message": "Verification email sent"
+		});
+}

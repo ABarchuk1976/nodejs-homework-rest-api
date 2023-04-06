@@ -71,8 +71,6 @@ exports.addUser = async (body) => {
 
     const newUser = await User.create(body);
 
-		console.log("NEW USER: ", newUser);
-
     const { email, subscription, verificationToken } = newUser;
 
     const subject = `For verification your registration.`;
@@ -132,10 +130,18 @@ exports.getByVerificationToken = async (token) => {
 
 		const user = await User.findOne({ verificationToken: token });
 
-		console.log("USER: ", user);
-
     return user;
   } catch (error) {
     console.log(error);
   }
 };
+
+exports.getByEmail = async (email) => {
+	try {
+		const user = await User.findOne({email});
+
+		return user;
+	} catch (error) {
+		console.log(error);
+	}
+}

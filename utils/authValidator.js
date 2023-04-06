@@ -19,3 +19,12 @@ exports.authSubscriptionValidator = (data) =>
       subscription: Joi.any().valid('starter', 'pro', 'business'),
     })
     .validate(data);
+
+exports.authEmailValidator = (data) =>
+  Joi.object()
+    .keys({
+      email: Joi.string()
+        .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net', 'ua'] } })
+        .required(),
+    })
+    .validate(data);
