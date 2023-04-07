@@ -82,6 +82,7 @@ exports.updateAvatar = ImageService.upload('avatar');
 
 exports.checkVerificationToken = async (req, res, next) => {
   const { verificationToken } = req.params;
+
   const user = await usersModel.getByVerificationToken(verificationToken);
 
   if (!user)

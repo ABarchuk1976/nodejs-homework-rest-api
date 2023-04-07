@@ -35,7 +35,7 @@ const userSchema = new mongoose.Schema(
     },
     verificationToken: {
       type: String,
-      required: [true, 'Verify token is required'],
+			default: null,
     },
   },
   { versionKey: false }
@@ -73,11 +73,12 @@ exports.addUser = async (body) => {
 
     const { email, subscription, verificationToken } = newUser;
 
-    const subject = `For verification youe registration.`;
-    const html = `<strong> Follow the link: </strong> <a> href="localhost:3000/users/verify/${verificationToken}"</a>`;
+    const subject = `For verification your registration.`;
+    const html = `<strong> Follow the link: </strong><a href="localhost:3000/api/users/verify/${verificationToken}" target="_blank" rel="noopener noreferrer">localhost:3000/api/users/verify/${verificationToken}</a>`;
 
-    await sendEmail({ email, subject, html });
+    await sendEmail({ to: email, subject, html });
 
+		
     return { user: { email, subscription } };
   } catch (error) {
     console.log(error);
@@ -88,6 +89,7 @@ exports.loginUser = async (body) => {
   try {
     const { email, password } = body;
     const logonUser = await User.findOne({ email }).select('+password');
+
     const passwordIsValid = await logonUser?.checkPassword(
       password,
       logonUser.password
@@ -100,8 +102,6 @@ exports.loginUser = async (body) => {
     const token = signToken(id);
 
     const user = await User.findByIdAndUpdate(id, { token }, { new: true });
-
-    console.log('User in usersModel: ', user);
 
     return user;
   } catch (error) {
@@ -127,8 +127,21 @@ exports.getById = async (userId) => {
 
 exports.getByVerificationToken = async (token) => {
   try {
-    return await User.findOne({ verificationToken: token });
+
+		const user = await User.findOne({ verificationToken: token });
+
+    return user;
   } catch (error) {
     console.log(error);
   }
 };
+
+exports.getByEmail = async (email) => {
+	try {
+		const user = await User.findOne({email});
+
+		return user;
+	} catch (error) {
+		console.log(error);
+	}
+}

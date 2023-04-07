@@ -14,11 +14,16 @@ router
   );
 
 router
-  .route('verify/:verificationToken')
+  .route('/verify/:verificationToken')
   .get(
     authMiddlewares.checkVerificationToken,
     authControllers.verificationController
   );
+
+router.route('/verify')
+.post(
+	authControllers.sendEmailController
+	);
 
 router
   .route('/login')

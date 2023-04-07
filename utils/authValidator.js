@@ -7,7 +7,7 @@ exports.authUserDataValidator = (data) =>
   Joi.object()
     .keys({
       email: Joi.string()
-        .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } })
+        .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net', 'ua'] } })
         .required(),
       password: Joi.string().regex(PASSWD_REGEX).required(),
     })
@@ -17,5 +17,14 @@ exports.authSubscriptionValidator = (data) =>
   Joi.object()
     .keys({
       subscription: Joi.any().valid('starter', 'pro', 'business'),
+    })
+    .validate(data);
+
+exports.authEmailValidator = (data) =>
+  Joi.object()
+    .keys({
+      email: Joi.string()
+        .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net', 'ua'] } })
+        .required(),
     })
     .validate(data);
